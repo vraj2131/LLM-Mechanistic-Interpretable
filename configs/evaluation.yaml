@@ -1,0 +1,7 @@
+ranking_metrics:
+  - ndcg@10
+  - mrr@10
+  - recall@20
+
+# Primary metric for comparisons and intervention evaluation
+primary_metric: ndcg@10

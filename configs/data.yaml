@@ -1,0 +1,27 @@
+datasets:
+  scifact:
+    name: scifact
+    split: test
+    hf_path: BeIR/scifact
+    label_type: binary        # 0 or 1
+    n_queries: 300
+    n_corpus: 1109
+  nfcorpus:
+    name: nfcorpus
+    split: test
+    hf_path: BeIR/nfcorpus
+    label_type: graded        # 0, 1, or 2
+    n_queries: 323
+    n_corpus: 3633
+
+# is_relevant threshold: label >= relevance_threshold counts as relevant
+relevance_threshold: 1
+
+# Document text truncation for prompts (tokens)
+max_doc_tokens: 512
+
+# Primary dataset for Phases 1-8
+primary_dataset: scifact
+
+# OOD dataset for Phase 9
+ood_dataset: nfcorpus

@@ -1,0 +1,44 @@
+model_id: Qwen/Qwen2.5-1.5B-Instruct
+dtype: float16    # model.half() for inference efficiency
+batch_size: 8
+
+score_range:
+  min: 0
+  max: 3
+
+# Fallback score when parser cannot extract a valid integer
+fallback_score: 0
+
+# Prompt template — {query}, {doc_title}, {doc_text} are filled at runtime
+system_prompt: "You are an expert relevance assessor."
+
+user_prompt_template: |
+  Given the following query and document, rate how relevant the document is to the query on a scale of 0 to 3:
+  - 0: Not relevant
+  - 1: Marginally relevant
+  - 2: Relevant
+  - 3: Highly relevant
+
+  Query: {query}
+  Document Title: {doc_title}
+  Document: {doc_text}
+
+  Respond with a single integer (0, 1, 2, or 3).
+
+# Prompt variants for Phase 9 robustness experiment
+prompt_variants:
+  no_rubric: |
+    Query: {query}
+    Document Title: {doc_title}
+    Document: {doc_text}
+    Relevance score (0-3):
+  scale_0_10: |
+    Rate the relevance of the document to the query on a scale of 0 to 10.
+    Query: {query}
+    Document: {doc_text}
+    Score:
+  flipped_order: |
+    Document Title: {doc_title}
+    Document: {doc_text}
+    Query: {query}
+    Rate relevance 0-3 (0=not relevant, 3=highly relevant):

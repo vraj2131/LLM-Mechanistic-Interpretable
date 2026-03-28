@@ -1,0 +1,8 @@
+seed: 42
+device: cuda  # falls back to cpu if unavailable
+
+# Root paths — all other configs reference these
+project_root: ${oc.env:PROJECT_ROOT,.}
+data_root: ${project_root}/data
+cache_root: ${project_root}/data/caches
+output_root: ${project_root}/outputs

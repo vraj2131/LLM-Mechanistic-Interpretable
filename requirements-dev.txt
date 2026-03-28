@@ -1,0 +1,12 @@
+-r requirements.txt
+
+# Testing
+pytest>=8.0.0
+pytest-cov>=4.1.0
+
+# Notebook
+jupyter>=1.0.0
+ipykernel>=6.29.0
+
+# Dimensionality reduction (for activation inspection notebooks)
+umap-learn>=0.5.6

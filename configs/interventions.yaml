@@ -1,0 +1,18 @@
+# Alpha magnitudes for probe-direction steering
+# Applied as: hidden[:, token_pos, :] += alpha * direction
+# direction is unit-normalized probe weight vector
+alpha_multipliers: [1.0, 3.0, 5.0]    # multiplied by ||w|| (probe weight norm)
+directions: [positive, negative]        # both +alpha and -alpha
+
+# Layers to run interventions on (best probe layers identified in Phase 6)
+# These are defaults; update after probing results are available
+probe_intervention_layers: [7, 14, 21]
+
+# SAE feature steering
+sae_steering_alpha_multipliers: [1.0, 3.0, 5.0]
+
+# Output collapse detection — flag if std(scores) < collapse_std_threshold after intervention
+collapse_std_threshold: 0.05
+
+# Statistical testing
+significance_level: 0.05    # paired t-test p-value threshold

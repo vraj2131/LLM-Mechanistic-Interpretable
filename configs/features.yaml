@@ -1,0 +1,41 @@
+# All lexical features use whitespace tokenization (NOT Qwen subword tokenizer)
+# This is a deliberate choice: we want surface-level IR signals, not subword artifacts.
+tokenizer: whitespace
+
+features:
+  lexical_overlap:
+    type: continuous
+    description: "|Q_tokens ∩ D_tokens| / |Q_tokens|"
+    probe: ridge
+
+  qtf:
+    type: continuous
+    description: "Mean term frequency of query tokens in document"
+    probe: ridge
+
+  doc_length_bucket:
+    type: categorical
+    n_buckets: 4
+    description: "Quartile bucket of document word count (0=shortest, 3=longest)"
+    # Quartile boundaries are computed on the FULL corpus, not just top-k candidates
+    probe: logistic
+
+  bm25_score:
+    type: continuous
+    description: "Raw BM25 score from retrieval phase"
+    probe: ridge
+
+  bm25_rank:
+    type: continuous
+    description: "BM25 retrieval rank (1 = top result)"
+    probe: ridge
+
+  is_relevant:
+    type: binary
+    description: "relevance_label >= relevance_threshold"
+    probe: logistic
+
+  relevance_label:
+    type: continuous
+    description: "Raw BEIR relevance label (SciFact: 0/1, NFCorpus: 0/1/2)"
+    probe: ridge

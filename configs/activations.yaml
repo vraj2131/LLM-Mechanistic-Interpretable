@@ -1,0 +1,19 @@
+model:
+  n_layers: 28
+  hidden_dim: 1536
+  layer_module_path: model.model.layers   # model.model.layers[i] for Qwen2.5
+
+# Which layers to hook (all layers for probing; subset for SAE)
+hook_all_layers: true
+
+# Token position strategy — "last_input" = input_ids.shape[1] - 1
+# This is the position the model attends to when generating the first output token.
+# All phases must import token_position.py — never hardcode this.
+token_position_strategy: last_input
+
+# Storage dtype for cached activations (float16 halves disk footprint)
+storage_dtype: float16
+
+# Activation source for SAE training
+# "decision_token" = only the decision position; "all_positions" = every sequence position
+sae_activation_source: all_positions

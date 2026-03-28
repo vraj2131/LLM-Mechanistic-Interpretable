@@ -1,0 +1,10 @@
+bm25:
+  # BM25Okapi hyperparameters
+  k1: 1.5
+  b: 0.75
+  tokenizer: whitespace   # whitespace split + lowercase; documented for reproducibility
+
+# Candidate list depths
+top_k_primary: 20    # used in Phases 1-8
+top_k_ood: 20        # used for NFCorpus
+top_k_extended: 50   # used in Phase 9 robustness experiment

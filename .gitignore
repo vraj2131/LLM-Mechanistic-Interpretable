@@ -1,0 +1,46 @@
+# Data — never commit raw or cached data
+data/raw/
+data/caches/
+data/interim/
+data/processed/
+
+# Large binary outputs
+outputs/final/sae_checkpoints/
+outputs/final/probe_weights/
+*.npy
+*.pkl
+
+# HuggingFace model cache
+~/.cache/huggingface/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Secrets
+.env
+*.env
+.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
