@@ -1,0 +1,8 @@
+target,probe_type,metric,best_score,ci_lower,ci_upper,best_layer
+doc_length_bucket,logistic,AUROC,0.9976,0.996,0.9988,3
+is_relevant,logistic,AUROC,0.9709,0.9535,0.9841,17
+bm25_score,ridge,R²,0.7147,0.6837,0.7396,17
+query_term_freq,ridge,R²,0.4466,0.3985,0.4909,20
+lexical_overlap,ridge,R²,0.4374,0.3909,0.4778,19
+relevance_label,ridge,R²,0.3022,0.1657,0.409,19
+bm25_rank,ridge,R²,0.0694,0.021,0.1192,17
