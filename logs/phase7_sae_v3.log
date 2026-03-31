@@ -1,0 +1,60 @@
+>>> SciFact layer 17 (2x)
+2026-03-31 09:07:01 | INFO     | __main__ | Training SAE: layer=17  device=mps  epochs=20
+2026-03-31 09:07:01 | INFO     | __main__ | Loading SAE activations: data/caches/sae_activations/scifact/layer_17.npy
+2026-03-31 09:07:01 | INFO     | __main__ |   shape=(2571019, 1536)  dtype=float16
+2026-03-31 09:07:13 | INFO     | __main__ |   Subsampled to 750,000 vectors
+2026-03-31 09:07:14 | INFO     | __main__ |   train=675,000  val=75,000  batches/epoch=330
+2026-03-31 09:07:32 | INFO     | __main__ |   epoch   1/20  train=99.1659  val=15.0699  (17.9s)
+2026-03-31 09:08:40 | INFO     | __main__ |   epoch   5/20  train=0.6808  val=0.5922  (17.0s)
+2026-03-31 09:10:05 | INFO     | __main__ |   epoch  10/20  train=0.3522  val=0.3466  (17.0s)
+2026-03-31 09:11:31 | INFO     | __main__ |   epoch  15/20  train=0.3064  val=0.3044  (17.0s)
+2026-03-31 09:12:56 | INFO     | __main__ |   epoch  20/20  train=0.2817  val=0.2813  (17.0s)
+2026-03-31 09:12:56 | INFO     | __main__ |   Best val loss 0.2813 at epoch 20
+2026-03-31 09:12:56 | INFO     | __main__ |   Dead features: 11.9%  (threshold: 5.0%)
+
+Done. Best val loss=0.2813  dead features=11.9%  checkpoint=outputs/final/sae_checkpoints/scifact/layer17
+>>> SciFact layer 21 (2x)
+2026-03-31 09:12:59 | INFO     | __main__ | Training SAE: layer=21  device=mps  epochs=20
+2026-03-31 09:12:59 | INFO     | __main__ | Loading SAE activations: data/caches/sae_activations/scifact/layer_21.npy
+2026-03-31 09:12:59 | INFO     | __main__ |   shape=(2571019, 1536)  dtype=float16
+2026-03-31 09:13:07 | INFO     | __main__ |   Subsampled to 750,000 vectors
+2026-03-31 09:13:08 | INFO     | __main__ |   train=675,000  val=75,000  batches/epoch=330
+2026-03-31 09:13:27 | INFO     | __main__ |   epoch   1/20  train=101.4590  val=16.8619  (17.7s)
+2026-03-31 09:14:35 | INFO     | __main__ |   epoch   5/20  train=1.3346  val=1.2212  (17.0s)
+2026-03-31 09:16:00 | INFO     | __main__ |   epoch  10/20  train=0.8453  val=0.8319  (17.0s)
+2026-03-31 09:17:25 | INFO     | __main__ |   epoch  15/20  train=0.7256  val=0.7212  (17.0s)
+2026-03-31 09:18:50 | INFO     | __main__ |   epoch  20/20  train=0.6582  val=0.6576  (17.0s)
+2026-03-31 09:18:50 | INFO     | __main__ |   Best val loss 0.6576 at epoch 20
+2026-03-31 09:18:51 | INFO     | __main__ |   Dead features: 5.4%  (threshold: 5.0%)
+
+Done. Best val loss=0.6576  dead features=5.4%  checkpoint=outputs/final/sae_checkpoints/scifact/layer21
+>>> NFCorpus layer 17 (2x)
+2026-03-31 09:18:53 | INFO     | __main__ | Training SAE: layer=17  device=mps  epochs=20
+2026-03-31 09:18:53 | INFO     | __main__ | Loading SAE activations: data/caches/sae_activations/nfcorpus/layer_17.npy
+2026-03-31 09:18:53 | INFO     | __main__ |   shape=(2769019, 1536)  dtype=float16
+2026-03-31 09:19:03 | INFO     | __main__ |   Subsampled to 750,000 vectors
+2026-03-31 09:19:04 | INFO     | __main__ |   train=675,000  val=75,000  batches/epoch=330
+2026-03-31 09:19:23 | INFO     | __main__ |   epoch   1/20  train=92.2851  val=12.5288  (18.2s)
+2026-03-31 09:20:31 | INFO     | __main__ |   epoch   5/20  train=0.6377  val=0.5383  (17.0s)
+2026-03-31 09:21:56 | INFO     | __main__ |   epoch  10/20  train=0.3174  val=0.3120  (16.9s)
+2026-03-31 09:23:21 | INFO     | __main__ |   epoch  15/20  train=0.2739  val=0.2722  (17.0s)
+2026-03-31 09:24:46 | INFO     | __main__ |   epoch  20/20  train=0.2502  val=0.2498  (17.0s)
+2026-03-31 09:24:46 | INFO     | __main__ |   Best val loss 0.2498 at epoch 20
+2026-03-31 09:24:47 | INFO     | __main__ |   Dead features: 7.6%  (threshold: 5.0%)
+
+Done. Best val loss=0.2498  dead features=7.6%  checkpoint=outputs/final/sae_checkpoints/nfcorpus/layer17
+>>> NFCorpus layer 21 (2x)
+2026-03-31 09:24:49 | INFO     | __main__ | Training SAE: layer=21  device=mps  epochs=20
+2026-03-31 09:24:49 | INFO     | __main__ | Loading SAE activations: data/caches/sae_activations/nfcorpus/layer_21.npy
+2026-03-31 09:24:49 | INFO     | __main__ |   shape=(2769019, 1536)  dtype=float16
+2026-03-31 09:24:59 | INFO     | __main__ |   Subsampled to 750,000 vectors
+2026-03-31 09:25:00 | INFO     | __main__ |   train=675,000  val=75,000  batches/epoch=330
+2026-03-31 09:25:18 | INFO     | __main__ |   epoch   1/20  train=95.9468  val=14.5733  (17.8s)
+2026-03-31 09:26:26 | INFO     | __main__ |   epoch   5/20  train=1.2408  val=1.1247  (17.0s)
+2026-03-31 09:27:53 | INFO     | __main__ |   epoch  10/20  train=0.7655  val=0.7527  (17.4s)
+2026-03-31 09:29:21 | INFO     | __main__ |   epoch  15/20  train=0.6572  val=0.6524  (18.1s)
+2026-03-31 09:30:49 | INFO     | __main__ |   epoch  20/20  train=0.5953  val=0.5940  (17.6s)
+2026-03-31 09:30:49 | INFO     | __main__ |   Best val loss 0.5940 at epoch 20
+2026-03-31 09:30:50 | INFO     | __main__ |   Dead features: 3.8%  (threshold: 5.0%)
+
+Done. Best val loss=0.5940  dead features=3.8%  checkpoint=outputs/final/sae_checkpoints/nfcorpus/layer21

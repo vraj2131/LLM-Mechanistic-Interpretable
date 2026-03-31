@@ -1,11 +1,12 @@
 # SAE training targets three depth regions of Qwen2.5-1.5B (28 layers total)
 # early=~25%, middle=~50%, late=~75% of depth
-target_layers: [7, 14, 21]
+target_layers: [7, 17, 21]   # updated from [7,14,21] — layer 17 confirmed peak by probing
 
 architecture:
   input_dim: 1536           # Qwen2.5-1.5B hidden dim
-  expansion_factor: 8       # hidden_dim = 1536 * 8 = 12288
-  k: 32                     # TopK: number of active features per forward pass
+  expansion_factor: 2       # hidden_dim = 1536 * 2 = 3072  (layers 17/21 retrain; layer 7 used 4x)
+  k: 64                     # TopK: number of active features per forward pass
+  # k=64 / 3072 = 2.08% coverage per pass — targets dead features < 5% for deeper layers
   # TopK enforces sparsity structurally — no L1 penalty needed
   normalize_decoder: true   # normalize decoder columns to unit norm after each step
 
@@ -13,9 +14,10 @@ training:
   lr: 1.0e-4
   optimizer: adam
   batch_size: 2048
-  epochs: 50
+  epochs: 20
   val_split: 0.1
   random_state: 42
+  max_samples: 750000   # subsample to keep runtime ~25 min per SAE
 
 # Source of activations for SAE training
 # all_positions: every token position across all prompts (~60-120K vectors)

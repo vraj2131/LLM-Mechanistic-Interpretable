@@ -1,0 +1,84 @@
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Computing sparse codes for layer 7...
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Finding top activating examples...
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Analysing top-20 examples for 291 active features (of 6,144 total)
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer |   Saved top examples: 291 active features
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Computing IR feature correlations...
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer |   Saved correlations for 100 features
+scifact layer 7: active=291  dead=95.3%
+  lexical_overlap        r=+0.128  feat=1857
+  query_term_freq        r=-0.131  feat=4547
+  bm25_score             r=-0.208  feat=3575
+  bm25_rank              r=+0.028  feat=3773
+  is_relevant            r=-0.066  feat=5732
+  relevance_label        r=-0.066  feat=5732
+  doc_length_bucket      r=+0.758  feat=546
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Computing sparse codes for layer 17...
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Finding top activating examples...
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Analysing top-20 examples for 270 active features (of 3,072 total)
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer |   Saved top examples: 270 active features
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Computing IR feature correlations...
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer |   Saved correlations for 100 features
+scifact layer 17: active=270  dead=91.2%
+  lexical_overlap        r=-0.241  feat=746
+  query_term_freq        r=-0.164  feat=1127
+  bm25_score             r=-0.292  feat=2166
+  bm25_rank              r=+0.251  feat=656
+  is_relevant            r=+0.382  feat=30
+  relevance_label        r=+0.382  feat=30
+  doc_length_bucket      r=+0.734  feat=2345
+2026-03-31 10:11:02 | INFO     | src.sae.feature_analyzer | Computing sparse codes for layer 21...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Finding top activating examples...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Analysing top-20 examples for 296 active features (of 3,072 total)
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved top examples: 296 active features
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing IR feature correlations...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved correlations for 100 features
+scifact layer 21: active=296  dead=90.4%
+  lexical_overlap        r=-0.284  feat=721
+  query_term_freq        r=-0.151  feat=1661
+  bm25_score             r=-0.249  feat=2857
+  bm25_rank              r=-0.281  feat=1543
+  is_relevant            r=+0.470  feat=2468
+  relevance_label        r=+0.470  feat=2468
+  doc_length_bucket      r=+0.587  feat=1661
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing sparse codes for layer 7...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Finding top activating examples...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Analysing top-20 examples for 188 active features (of 6,144 total)
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved top examples: 188 active features
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing IR feature correlations...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved correlations for 100 features
+nfcorpus layer 7: active=188  dead=96.9%
+  lexical_overlap        r=+0.162  feat=3357
+  query_term_freq        r=+0.150  feat=933
+  bm25_score             r=+0.188  feat=3946
+  bm25_rank              r=+0.112  feat=711
+  is_relevant            r=+0.060  feat=825
+  relevance_label        r=+0.061  feat=825
+  doc_length_bucket      r=-0.748  feat=2149
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing sparse codes for layer 17...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Finding top activating examples...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Analysing top-20 examples for 158 active features (of 3,072 total)
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved top examples: 158 active features
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing IR feature correlations...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved correlations for 100 features
+nfcorpus layer 17: active=158  dead=94.9%
+  lexical_overlap        r=-0.276  feat=2252
+  query_term_freq        r=+0.231  feat=928
+  bm25_score             r=+0.447  feat=1048
+  bm25_rank              r=+0.158  feat=2803
+  is_relevant            r=+0.292  feat=30
+  relevance_label        r=+0.260  feat=30
+  doc_length_bucket      r=+0.705  feat=1197
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing sparse codes for layer 21...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Finding top activating examples...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Analysing top-20 examples for 210 active features (of 3,072 total)
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved top examples: 210 active features
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer | Computing IR feature correlations...
+2026-03-31 10:11:03 | INFO     | src.sae.feature_analyzer |   Saved correlations for 100 features
+nfcorpus layer 21: active=210  dead=93.2%
+  lexical_overlap        r=+0.356  feat=656
+  query_term_freq        r=-0.226  feat=893
+  bm25_score             r=+0.272  feat=2103
+  bm25_rank              r=-0.152  feat=2406
+  is_relevant            r=+0.338  feat=3043
+  relevance_label        r=+0.313  feat=3043
+  doc_length_bucket      r=-0.582  feat=2064
