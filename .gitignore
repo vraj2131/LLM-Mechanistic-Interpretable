@@ -4,11 +4,22 @@ data/caches/
 data/interim/
 data/processed/
 
+# Allow lightweight result files needed by the dashboard
+!data/processed/scifact/probe_results.json
+!data/processed/nfcorpus/probe_results.json
+
 # Large binary outputs
 outputs/final/sae_checkpoints/
+outputs/final/sae_activations/
 outputs/final/probe_weights/
 *.npy
 *.pkl
+
+# Allow small dashboard outputs
+!outputs/final/retrieval_metrics.json
+!outputs/final/figures/
+!outputs/final/interventions/
+!outputs/final/sae_analysis/**/*.parquet
 
 # HuggingFace model cache
 ~/.cache/huggingface/
