@@ -1,0 +1,5 @@
+Dataset,Type,Signal,α,ΔnDCG,p
+SCIFACT,Probe,Is Relevant,3.0,0.004344,0.0483
+SCIFACT,SAE,feat30 (Is Relevant),,-0.003816,0.0461
+NFCORPUS,Probe,Is Relevant,-1.0,-0.001167,0.0384
+NFCORPUS,Probe,Lexical Overlap,-5.0,-0.003271,0.0282

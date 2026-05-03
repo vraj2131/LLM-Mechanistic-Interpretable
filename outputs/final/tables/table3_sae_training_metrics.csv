@@ -1,4 +1,4 @@
-Dataset,Layer,Val Loss (MSE),Train Loss,Hidden Dim,k
+Dataset,Layer,Val Loss (MSE),Train Loss,Hidden Dim,k (TopK)
 SCIFACT,7,0.1388,0.1377,6144,64
 SCIFACT,17,0.2813,0.2817,3072,64
 SCIFACT,21,0.6576,0.6582,3072,64
