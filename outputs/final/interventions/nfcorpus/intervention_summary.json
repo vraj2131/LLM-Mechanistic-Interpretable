@@ -1,0 +1,11 @@
+{
+  "baseline_metrics": {
+    "ndcg@10": 0.23809663360373307,
+    "mrr@10": 0.403876111848248,
+    "recall@20": 0.14456696501723454
+  },
+  "n_probe_conditions": 0,
+  "n_sae_conditions": 12,
+  "significant_probe": [],
+  "significant_sae": []
+}

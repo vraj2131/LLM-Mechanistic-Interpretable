@@ -1,0 +1,32 @@
+{
+  "baseline_metrics": {
+    "ndcg@10": 0.5816798408197574,
+    "mrr@10": 0.553739417989418,
+    "recall@20": 0.737
+  },
+  "n_probe_conditions": 0,
+  "n_sae_conditions": 12,
+  "significant_probe": [],
+  "significant_sae": [
+    {
+      "experiment": "sae_steering",
+      "dataset": "scifact",
+      "layer": 17,
+      "split_baseline_ndcg": 0.221665,
+      "feature_idx": 30,
+      "ir_target": "is_relevant",
+      "r_value": 0.3816,
+      "mode": "ablate",
+      "alpha": null,
+      "ndcg_at10": 0.217849,
+      "mrr_at10": 0.164943,
+      "delta_ndcg": -0.003816,
+      "delta_mrr": -0.003135,
+      "t_stat": -2.0025,
+      "p_value": 0.0461,
+      "significant": true,
+      "collapsed": false,
+      "n_queries": 300
+    }
+  ]
+}

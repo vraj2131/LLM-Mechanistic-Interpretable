@@ -310,7 +310,25 @@ def _build_sae_feature_plan(
         / f"ir_correlations_layer{layer}.parquet"
     )
     if feature_indices is not None:
-        # Caller supplied explicit indices — label them as "custom", r_value=None
+        # Look up each feature's best-correlated IR target from parquet if available
+        if corr_path.exists():
+            corr_df = pd.read_parquet(corr_path)
+            r_cols = [c for c in corr_df.columns if c.startswith("r_")]
+            plan = []
+            for fi in feature_indices:
+                if fi in corr_df.index:
+                    best_col = corr_df.loc[fi, r_cols].abs().idxmax()
+                    plan.append({
+                        "feature_idx": fi,
+                        "ir_target": best_col[2:],
+                        "r_value": round(float(corr_df.loc[fi, best_col]), 4),
+                    })
+                else:
+                    plan.append({"feature_idx": fi, "ir_target": "custom", "r_value": None})
+            log.info(f"SAE feature plan (explicit indices):")
+            for p in plan:
+                log.info(f"  feat={p['feature_idx']:>4}  best_target={p['ir_target']:<25}  r={p['r_value']}")
+            return plan
         return [{"feature_idx": fi, "ir_target": "custom", "r_value": None}
                 for fi in feature_indices]
 
@@ -486,17 +504,31 @@ def run_all_interventions(
     run_probe: bool = True,
     run_sae: bool = True,
 ) -> dict[str, list[dict]]:
-    """Orchestrate both experiment families and save results.
+    """Orchestrate both experiment families using the fast split-forward-pass scorer.
+
+    Speedup vs. naive hook approach:
+      - Layers 0..split_layer run once per batch (not once per condition).
+      - All conditions for the same layer share the cached hidden state.
+      - Baseline loaded from Phase 3 cache — no extra model pass needed.
 
     Returns:
         {"probe": [...], "sae": [...]}
     """
     from src.reranking.qwen_inference import load_model
+    from src.interventions.fast_scorer import FastInterventionScorer
     from src.utils.reproducibility import set_all_seeds
+    from src.sae.model import TopKSAE
 
     set_all_seeds(42)
     out_dir = Path(output_dir) / dataset_name
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if probe_targets is None:
+        probe_targets = ["is_relevant", "lexical_overlap", "bm25_score"]
+    if probe_layers is None:
+        probe_layers = [7, 17, 21]
+    if alpha_multipliers is None:
+        alpha_multipliers = [-5.0, -3.0, -1.0, 1.0, 3.0, 5.0]
 
     # Load pairs and dataset
     pairs_path = Path(interim_dir) / dataset_name / "query_doc_pairs.parquet"
@@ -504,29 +536,33 @@ def run_all_interventions(
     dataset = load_beir_dataset(dataset_name, data_root=data_root)
     qrels = dataset.qrels
 
-    # Load model
+    # Load model — allow float16 on MPS for speed (fine for relative scoring)
     cfg = load_config("configs/reranker.yaml")
     batch_size = batch_size or cfg.batch_size
-    model, tokenizer = load_model(cfg=cfg)
 
-    # Build prompts once (reused across all conditions)
+    import torch
+    if torch.backends.mps.is_available():
+        log.info("MPS detected — loading in float16 for faster intervention scoring")
+        model, tokenizer = load_model(cfg=cfg, dtype="float16", device="mps")
+    else:
+        model, tokenizer = load_model(cfg=cfg)
+
+    # Build prompts once
     prompts = build_prompts_for_pairs(pairs_df, tokenizer, cfg=cfg)
 
-    # Baseline scores — load from Phase 3 cache if available, otherwise re-score
+    # Baseline scores — load from Phase 3 cache (never re-score)
     cached_scores_path = Path(processed_dir) / dataset_name / "reranker_scores.parquet"
     baseline_path = out_dir / "baseline_scores.parquet"
 
     if cached_scores_path.exists():
         log.info(f"Loading baseline from Phase 3 cache: {cached_scores_path}")
         raw = pd.read_parquet(cached_scores_path)
-        baseline_df = pairs_df[["query_id", "doc_id"]].copy()
-        baseline_df = baseline_df.merge(
+        baseline_df = pairs_df[["query_id", "doc_id"]].copy().merge(
             raw[["query_id", "doc_id", "reranker_expected_score"]],
             on=["query_id", "doc_id"],
-        )
-        baseline_df = baseline_df.rename(columns={"reranker_expected_score": "expected_score"})
+        ).rename(columns={"reranker_expected_score": "expected_score"})
     else:
-        log.info("No cached baseline found — scoring baseline (no intervention)...")
+        log.info("No cached baseline — scoring once with no intervention ...")
         baseline_df = _score_pairs_with_hook(
             prompts, pairs_df, model, tokenizer, hook=None, batch_size=batch_size
         )
@@ -534,56 +570,194 @@ def run_all_interventions(
     baseline_run = _scores_df_to_run(baseline_df)
     baseline_metrics = compute_all_metrics(baseline_run, qrels)
     log.info(f"Baseline: nDCG@10={baseline_metrics['ndcg@10']:.4f}  MRR@10={baseline_metrics['mrr@10']:.4f}")
-
-    # Save baseline for this run
     baseline_df.to_parquet(baseline_path, index=False)
     with open(out_dir / "baseline_metrics.json", "w") as f:
         json.dump(baseline_metrics, f, indent=2)
 
     all_results: dict[str, list[dict]] = {"probe": [], "sae": []}
+    weights_dir = Path(processed_dir) / dataset_name / "probe_weights"
 
+    # ----------------------------------------------------------------
+    # Probe steering — group conditions by layer so each layer only
+    # needs ONE data pass (all targets × all alphas share h_split).
+    # ----------------------------------------------------------------
     if run_probe:
-        log.info("=== Running probe-direction steering experiments ===")
-        probe_results = run_probe_interventions(
-            dataset_name=dataset_name,
-            model=model,
-            tokenizer=tokenizer,
-            baseline_df=baseline_df,
-            qrels=qrels,
-            prompts=prompts,
-            pairs_df=pairs_df,
-            targets=probe_targets,
-            layers=probe_layers,
-            alpha_multipliers=alpha_multipliers,
-            processed_dir=processed_dir,
-            batch_size=batch_size,
-        )
-        all_results["probe"] = probe_results
+        log.info("=== Probe-direction steering (fast split-forward-pass) ===")
+        for layer in probe_layers:
+            # Collect all (target, alpha) conditions for this layer
+            layer_conditions: list[tuple[str, object]] = []  # (label, perturb_fn)
+            meta: list[dict] = []  # parallel metadata
+
+            device = next(model.parameters()).device
+            dtype  = next(model.parameters()).dtype
+
+            for target in probe_targets:
+                w_path = weights_dir / f"layer_{layer}_{target}.npy"
+                if not w_path.exists():
+                    log.warning(f"Probe weight missing: {w_path} — skipping")
+                    continue
+                w = np.load(w_path).astype(np.float32)
+                w_norm = float(np.linalg.norm(w))
+
+                # Normalize to unit direction so alpha is in consistent units
+                # across all targets regardless of probe weight magnitude.
+                # Without this, bm25_score (norm=128) would collapse at alpha=1
+                # while lexical_overlap (norm=1.7) would barely move.
+                w_unit = w / (w_norm + 1e-8)
+
+                for alpha in alpha_multipliers:
+                    vec = torch.from_numpy(alpha * w_unit).to(device=device, dtype=dtype)
+
+                    def make_perturb(v):
+                        def perturb(h): h[:, -1, :] = h[:, -1, :] + v
+                        return perturb
+
+                    label = f"{target}__layer{layer}__a{alpha:+.1f}"
+                    layer_conditions.append((label, make_perturb(vec)))
+                    meta.append({"target": target, "layer": layer,
+                                 "alpha_multiplier": alpha, "probe_norm": round(w_norm, 4)})
+
+            if not layer_conditions:
+                continue
+
+            # One data pass: baseline (no perturbation) + all conditions
+            # Using in-pass baseline ensures fair comparison — same forward-pass
+            # setup (attention_mask=None, float16) for both baseline and intervention.
+            scorer = FastInterventionScorer(model, tokenizer, split_layer=layer,
+                                            batch_size=batch_size, max_length=700)
+            scorer.prepare(prompts, pairs_df)
+            scores_map = scorer.score_conditions(
+                [("__baseline__", None)] + layer_conditions,
+                desc=f"Probe layer={layer}",
+            )
+
+            # Build in-pass baseline DataFrame
+            split_baseline_df = pairs_df[["query_id", "doc_id"]].copy()
+            split_baseline_df["expected_score"] = scores_map["__baseline__"]
+            split_run = _scores_df_to_run(split_baseline_df)
+            split_metrics = compute_all_metrics(split_run, qrels)
+            log.info(f"  Split-pass baseline (layer={layer}): "
+                     f"nDCG@10={split_metrics['ndcg@10']:.4f}")
+
+            # Compute stats vs in-pass baseline
+            for (label, _), m in zip(layer_conditions, meta):
+                int_df = pairs_df[["query_id", "doc_id"]].copy()
+                int_df["expected_score"] = scores_map[label]
+
+                stats = _compute_intervention_stats(
+                    int_df, split_baseline_df, qrels,
+                    significance_level=0.05, collapse_threshold=0.05,
+                )
+                row = {"experiment": "probe_steering", "dataset": dataset_name,
+                       "split_baseline_ndcg": round(split_metrics["ndcg@10"], 6),
+                       **m, **stats}
+                all_results["probe"].append(row)
+                log.info(
+                    f"  probe {m['target']} layer={layer} α={m['alpha_multiplier']:+.0f}"
+                    f" → ΔnDCG={stats['delta_ndcg']:+.4f} p={stats['p_value']:.3f}"
+                    f"{' COLLAPSED' if stats['collapsed'] else ''}"
+                )
+
         probe_path = out_dir / "probe_intervention_results.json"
         with open(probe_path, "w") as f:
-            json.dump(probe_results, f, indent=2)
-        log.info(f"Saved {len(probe_results)} probe results → {probe_path}")
+            json.dump(all_results["probe"], f, indent=2)
+        log.info(f"Saved {len(all_results['probe'])} probe results → {probe_path}")
 
+    # ----------------------------------------------------------------
+    # SAE feature steering — all features × all modes × all alphas
+    # in a single data pass at sae_layer.
+    # ----------------------------------------------------------------
     if run_sae:
-        log.info("=== Running SAE feature steering experiments ===")
-        sae_results = run_sae_interventions(
-            dataset_name=dataset_name,
-            model=model,
-            tokenizer=tokenizer,
-            baseline_df=baseline_df,
-            qrels=qrels,
-            prompts=prompts,
-            pairs_df=pairs_df,
-            layer=sae_layer,
-            feature_indices=sae_feature_indices,
-            checkpoint_dir=checkpoint_dir,
-            batch_size=batch_size,
+        log.info("=== SAE feature steering (fast split-forward-pass) ===")
+        feature_plan = _build_sae_feature_plan(dataset_name, sae_layer, sae_feature_indices)
+
+        # Load SAE once
+        ckpt_dir = Path(checkpoint_dir) / dataset_name / f"layer{sae_layer}"
+        with open(ckpt_dir / "metadata.json") as f:
+            meta_sae = json.load(f)
+        expansion_factor = meta_sae["hidden_dim"] // meta_sae["input_dim"]
+        sae = TopKSAE(input_dim=meta_sae["input_dim"],
+                      expansion_factor=expansion_factor, k=meta_sae["k"])
+        sae.load_state_dict(torch.load(ckpt_dir / "sae.pt", map_location="cpu", weights_only=True))
+        sae.eval()
+
+        device = next(model.parameters()).device
+        dtype  = next(model.parameters()).dtype
+        sae_dev = sae.to(device=device, dtype=dtype)
+
+        sae_conditions: list[tuple[str, object]] = []
+        sae_meta_list: list[dict] = []
+        amplify_alphas = [1.0, 3.0, 5.0]
+
+        for feat_info in feature_plan:
+            feat_idx = feat_info["feature_idx"]
+            dec_col = sae_dev.decoder.weight[:, feat_idx].detach()
+
+            for mode in ["ablate", "amplify"]:
+                alphas = amplify_alphas if mode == "amplify" else [1.0]
+                for alpha in alphas:
+                    if mode == "ablate":
+                        def make_ablate(fidx, col):
+                            def perturb(h):
+                                x = h[:, -1, :].to(dtype)  # keep same dtype as SAE
+                                with torch.no_grad():
+                                    sparse = sae_dev.encode(x)
+                                f_vals = sparse[:, fidx]
+                                h[:, -1, :] = x - f_vals.unsqueeze(1) * col.unsqueeze(0)
+                            return perturb
+                        label = f"feat{feat_idx}_{feat_info['ir_target']}_ablate"
+                        sae_conditions.append((label, make_ablate(feat_idx, dec_col)))
+                        sae_meta_list.append({"feature_idx": feat_idx,
+                                              "ir_target": feat_info["ir_target"],
+                                              "r_value": feat_info["r_value"],
+                                              "mode": "ablate", "alpha": None})
+                    else:
+                        def make_amplify(col, a):
+                            def perturb(h):
+                                h[:, -1, :] = h[:, -1, :] + (a * col).to(dtype)
+                            return perturb
+                        label = f"feat{feat_idx}_{feat_info['ir_target']}_amplify_a{alpha}"
+                        sae_conditions.append((label, make_amplify(dec_col, alpha)))
+                        sae_meta_list.append({"feature_idx": feat_idx,
+                                              "ir_target": feat_info["ir_target"],
+                                              "r_value": feat_info["r_value"],
+                                              "mode": "amplify", "alpha": alpha})
+
+        scorer = FastInterventionScorer(model, tokenizer, split_layer=sae_layer,
+                                        batch_size=batch_size, max_length=700)
+        scorer.prepare(prompts, pairs_df)
+        sae_scores_map = scorer.score_conditions(
+            [("__baseline__", None)] + sae_conditions,
+            desc=f"SAE layer={sae_layer}",
         )
-        all_results["sae"] = sae_results
+
+        # In-pass baseline for fair comparison
+        sae_split_baseline_df = pairs_df[["query_id", "doc_id"]].copy()
+        sae_split_baseline_df["expected_score"] = sae_scores_map["__baseline__"]
+        sae_split_run = _scores_df_to_run(sae_split_baseline_df)
+        sae_split_metrics = compute_all_metrics(sae_split_run, qrels)
+        log.info(f"  SAE split-pass baseline: nDCG@10={sae_split_metrics['ndcg@10']:.4f}")
+
+        for (label, _), m in zip(sae_conditions, sae_meta_list):
+            int_df = pairs_df[["query_id", "doc_id"]].copy()
+            int_df["expected_score"] = sae_scores_map[label]
+            stats = _compute_intervention_stats(int_df, sae_split_baseline_df, qrels)
+            row = {"experiment": "sae_steering", "dataset": dataset_name,
+                   "layer": sae_layer,
+                   "split_baseline_ndcg": round(sae_split_metrics["ndcg@10"], 6),
+                   **m, **stats}
+            all_results["sae"].append(row)
+            log.info(
+                f"  SAE feat={m['feature_idx']} ({m['ir_target']}) "
+                f"mode={m['mode']} α={m['alpha']}"
+                f" → ΔnDCG={stats['delta_ndcg']:+.4f} p={stats['p_value']:.3f}"
+                f"{' COLLAPSED' if stats['collapsed'] else ''}"
+            )
+
         sae_path = out_dir / "sae_intervention_results.json"
         with open(sae_path, "w") as f:
-            json.dump(sae_results, f, indent=2)
-        log.info(f"Saved {len(sae_results)} SAE results → {sae_path}")
+            json.dump(all_results["sae"], f, indent=2)
+        log.info(f"Saved {len(all_results['sae'])} SAE results → {sae_path}")
 
     # Combined summary
     summary_path = out_dir / "intervention_summary.json"

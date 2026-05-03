@@ -60,8 +60,10 @@ def load_model(
         else:
             device = "cpu"
 
-    # MPS (Apple Silicon) works best with float32; float16 can cause NaN on some ops
-    if device == "mps" and dtype_str == "float16":
+    # MPS float16 guard: only force float32 when dtype was not explicitly requested.
+    # Callers that pass dtype="float16" explicitly (e.g. intervention fast-scorer)
+    # accept the trade-off between speed and numerical precision.
+    if device == "mps" and dtype_str == "float16" and dtype is None:
         log.info("MPS detected — using float32 for numerical stability")
         dtype_str = "float32"
 
