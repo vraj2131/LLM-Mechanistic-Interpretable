@@ -5,6 +5,10 @@
 
 > *What internal features do LLM rerankers use to judge relevance — and are those features causal?*
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://llm-mechanistic-interpretable-abc.streamlit.app/)
+
+**🚀 Live Dashboard:** [https://llm-mechanistic-interpretable-abc.streamlit.app/](https://llm-mechanistic-interpretable-abc.streamlit.app/)
+
 ---
 
 ## Pipeline Overview
